@@ -46,6 +46,7 @@ class DeployService
 
         $cmd     = [$script, $site->path, $branch];
         $process = new Process($cmd);
+        $process->setWorkingDirectory($site->path);
         $process->setTimeout(null);
 
         try {

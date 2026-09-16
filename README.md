@@ -21,7 +21,7 @@ to live under `deploy/`.
   branch are derived from `DEPLOY_SITES_DIR` and `DEPLOY_BRANCH` automatically.
   See site state (pending / running / ok / error), current deployed version,
   last deploy time, and whether the next run will be a `deploy.sh` or `up.sh`.
-- **First deploy vs update** — `deploy.sh` (from `/www/usr/local/bin`) runs
+- **First deploy vs update** — `deploy.sh` (from `/usr/local/bin`) runs
   the first time a site is deployed; every subsequent deploy uses `up.sh`.
   The flag is stored as `sites.first_deployed` and is set automatically when
   the first deploy succeeds.
@@ -50,10 +50,10 @@ CLIENT_SSO_PORTAL=https://cloud.barnomala.com/sign-in-with-barnomala/
 DEPLOY_SITES_DIR=/www/wwwroot
 DEPLOY_BRANCH=main
 
-# Scripts (kept under /www/usr/local/bin)
-DEPLOY_FIRST_SCRIPT=/www/usr/local/bin/deploy.sh   # first deploy (new sites)
-DEPLOY_UPDATE_SCRIPT=/www/usr/local/bin/up.sh     # subsequent deploys
-DEPLOY_SCRIPT=/www/usr/local/bin/up.sh             # legacy fallback
+# Scripts (kept under /usr/local/bin)
+DEPLOY_FIRST_SCRIPT=/usr/local/bin/deploy.sh   # first deploy (new sites)
+DEPLOY_UPDATE_SCRIPT=/usr/local/bin/up.sh     # subsequent deploys
+DEPLOY_SCRIPT=/usr/local/bin/up.sh             # legacy fallback
 
 # "Deploy All" workflow
 DEPLOY_DEMO_DOMAIN=demo.barnomala.com
@@ -96,7 +96,7 @@ DEPLOY_QUEUE_INTERVAL=30
 
 `deploy.sh` is the provisioning script (used for a brand-new site) and
 `up.sh` is the update script (used for every subsequent deploy). Both are
-expected to live under `/www/usr/local/bin`. The exact steps they perform
+expected to live under `/usr/local/bin`. The exact steps they perform
 are owned by your shell scripts — this app just invokes them.
 
 ### "Deploy All" flow
