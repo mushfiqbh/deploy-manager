@@ -24,8 +24,13 @@ class DeploymentLog extends Model
         'finished_at',
     ];
 
-    public const KIND_FIRST  = 'first';   // ran deploy.sh
-    public const KIND_UPDATE = 'update';  // ran up.sh
+    // Tracks which inline pipeline was used:
+    //   KIND_FIRST  → `deploy.new_site_commands` (first deploy of a site)
+    //   KIND_UPDATE → `deploy.commands`         (existing-site update)
+    // The DeployService writes one of these values based on
+    // $site->first_deployed at the start of each run.
+    public const KIND_FIRST  = 'first';
+    public const KIND_UPDATE = 'update';
 
     protected $casts = [
         'started_at'  => 'datetime',

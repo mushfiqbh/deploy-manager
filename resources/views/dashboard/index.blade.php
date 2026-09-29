@@ -23,10 +23,10 @@
                     <label>Site Type</label>
                     <select name="mode" id="add-site-mode">
                         <option value="new" {{ old('mode', 'new') === 'new' ? 'selected' : '' }}>
-                            New Site (first deploy runs deploy.sh)
+                            New Site (first deploy — full pipeline)
                         </option>
                         <option value="update" {{ old('mode') === 'update' ? 'selected' : '' }}>
-                            Existing Site (first deploy runs up.sh)
+                            Existing Site (update — full pipeline)
                         </option>
                     </select>
                     <div class="muted">
@@ -71,9 +71,9 @@
                         </td>
                         <td>
                             @if (! $site->first_deployed)
-                                <span class="pill">first (deploy.sh)</span>
+                                <span class="pill">first deploy</span>
                             @else
-                                <span class="pill">update (up.sh)</span>
+                                <span class="pill">update</span>
                             @endif
                         </td>
                         <td><span class="pill">{{ $site->current_version ?? '—' }}</span></td>
@@ -134,7 +134,7 @@
                         <td><a href="{{ route('sites.show', $log->site) }}" style="color:var(--accent);">{{ $log->site?->domain ?? '—' }}</a></td>
                         <td>
                             <span class="pill">
-                                {{ $log->kind === 'first' ? 'deploy.sh' : 'up.sh' }}
+                                {{ $log->kind === 'first' ? 'first deploy' : 'update' }}
                             </span>
                         </td>
                         <td><span class="state {{ $log->status === 'success' ? 'ok' : ($log->status === 'error' ? 'error' : 'running') }}">{{ ucfirst($log->status) }}</span></td>

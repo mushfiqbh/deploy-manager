@@ -36,9 +36,9 @@
                         <td>{{ $site->domain }}</td>
                         <td>
                             @if (! $site->first_deployed)
-                                <span class="pill">first (deploy.sh)</span>
+                                <span class="pill">first deploy</span>
                             @else
-                                <span class="pill">update (up.sh)</span>
+                                <span class="pill">update</span>
                             @endif
                         </td>
                         <td><span class="state {{ $site->state }}">{{ ucfirst($site->state) }}</span></td>

@@ -20,14 +20,23 @@ to live under `deploy/`.
 - **Dashboard** — add a domain + site type (**New** or **Existing**); path and
   branch are derived from `DEPLOY_SITES_DIR` and `DEPLOY_BRANCH` automatically.
   See site state (pending / running / ok / error), current deployed version,
-  last deploy time, and whether the next run will be a `deploy.sh` or `up.sh`.
-- **First deploy vs update** — `deploy.sh` (from `/usr/local/bin`) runs
-  the first time a site is deployed; every subsequent deploy uses `up.sh`.
-  The flag is stored as `sites.first_deployed` and is set automatically when
-  the first deploy succeeds.
-- **One-click deploy** — runs the script (`deploy.sh` or `up.sh`) for a site
-  via `Symfony\Component\Process`, capturing stdout/stderr into a
-  `deployment_logs` row.
+  and last deploy time.
+- **Inline pipeline** — every deploy runs an inline shell pipeline from each
+  site's working directory via `Symfony\Component\Process` (no external
+  `/usr/local/bin/up` dependency). Pipelines are configured in
+  `config/deploy.php`:
+  - `commands` — used for **existing sites** (already deployed at least
+    once). Lightweight update: `git fetch origin && git reset --hard
+    origin/{branch} && composer update && php artisan migrate --force &&
+    npm install && npm run build && /etc/init.d/php-fpm-85 restart &&
+    /etc/init.d/nginx restart && php artisan optimize:clear`.
+  - `new_site_commands` — used for **new sites** (first deploy). Full
+    provisioning: permissions, `composer install`, app key, storage
+    symlink, migrate + seed, npm build, nginx + php-fpm rewrite rules,
+    cache reset, etc.
+- **First deploy vs update** — `DeployService` picks the right pipeline
+  based on `sites.first_deployed`. The flag is preserved for the UI and
+  flips to `true` automatically after the first successful deploy.
 - **Staged "Deploy All"** — runs `demo.barnomala.com` synchronously first;
   once you confirm, every other site is dispatched as a queued
   `DeploySiteJob` spaced `DEPLOY_QUEUE_INTERVAL` seconds apart via
@@ -49,11 +58,6 @@ CLIENT_SSO_PORTAL=https://cloud.barnomala.com/sign-in-with-barnomala/
 # Paths
 DEPLOY_SITES_DIR=/www/wwwroot
 DEPLOY_BRANCH=main
-
-# Scripts (kept under /usr/local/bin)
-DEPLOY_FIRST_SCRIPT=/usr/local/bin/deploy.sh   # first deploy (new sites)
-DEPLOY_UPDATE_SCRIPT=/usr/local/bin/up.sh     # subsequent deploys
-DEPLOY_SCRIPT=/usr/local/bin/up.sh             # legacy fallback
 
 # "Deploy All" workflow
 DEPLOY_DEMO_DOMAIN=demo.barnomala.com
@@ -82,22 +86,18 @@ DEPLOY_QUEUE_INTERVAL=30
 `App\Services\DeployService::deploySite($site)`:
 
 1. Reads `version_before` via `git rev-parse --short HEAD`.
-2. Picks the script: `deploy.sh` if `site->first_deployed` is false,
-   otherwise `up.sh`.
+2. Resolves the branch (`site->branch` > `DEPLOY_BRANCH` > `main`) and
+   substitutes `{branch}` into the configured commands.
 3. Sets `site.state = running` and opens a `DeploymentLog` row with
-   `kind = first | update`.
-4. Spawns the chosen script with `<site-path> <branch>` via `Process` (no
-   timeout).
+   `kind = update`.
+4. Spawns `bash -c "<cmd1> && <cmd2> && …"` from `site->path` via
+   `Process` (no timeout). The default pipeline mirrors the old
+   `/usr/local/bin/up` behaviour.
 5. Captures combined stdout + stderr.
 6. Reads `version_after`, marks the log + site `success` / `error`.
-7. On a successful first deploy, flips `first_deployed = true` so future
-   runs use `up.sh`.
+7. On the first successful deploy, flips `first_deployed = true` so the
+   UI badge changes from `first` to `update` for subsequent runs.
 8. Stores `exit_code`, `started_at`, `finished_at`, `user_id`.
-
-`deploy.sh` is the provisioning script (used for a brand-new site) and
-`up.sh` is the update script (used for every subsequent deploy). Both are
-expected to live under `/usr/local/bin`. The exact steps they perform
-are owned by your shell scripts — this app just invokes them.
 
 ### "Deploy All" flow
 

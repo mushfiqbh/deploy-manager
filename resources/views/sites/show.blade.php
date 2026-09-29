@@ -11,9 +11,9 @@
             &nbsp;·&nbsp; State: <span class="state {{ $site->state }}">{{ ucfirst($site->state) }}</span>
             &nbsp;·&nbsp; Type:
             @if (! $site->first_deployed)
-                <span class="pill">first (deploy.sh)</span>
+                <span class="pill">first deploy</span>
             @else
-                <span class="pill">update (up.sh)</span>
+                <span class="pill">update</span>
             @endif
         </div>
 
